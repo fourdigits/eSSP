@@ -186,7 +186,7 @@ class eSSP(object):  # noqa
                 # keep the status until we have the data
                 event_status_with_data = item
             else:
-                if event_status_with_data:
+                if event_status_with_data is not None:
                     # the previous item was a status in EVENTS_WITH_DATA
                     data = item
                     poll_data.append((event_status_with_data, data))
