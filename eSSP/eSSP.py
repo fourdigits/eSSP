@@ -3,6 +3,34 @@ import logging
 
 import serial
 
+# list of events, based on SSP Protocol manual, version GA138_2_2_222A retrieved from ITL website
+EVENT_SLAVE_RESET = 241
+EVENT_READ = 239
+EVENT_NOTE_CREDIT = 238
+EVENT_REJECTING = 237
+EVENT_REJECTED = 236
+EVENT_STACKING = 204
+EVENT_STACKED = 235
+EVENT_SAFE_JAM = 234
+EVENT_UNSAFE_JAM = 233
+EVENT_DISABLED = 232
+EVENT_STACKER_FULL = 231
+EVENT_FRAUD_ATTEMPT = 230
+EVENT_NOTE_CLEARED_FROM_FRONT = 225
+EVENT_NOTE_CLEARED_INTO_CASHBOX = 226
+EVENT_CHANNEL_DISABLE = 181
+EVENT_INITIALISING = 182
+EVENT_TICKET_IN_BEZEL = 173
+EVENT_PRINTED_TO_CASHBOX = 175
+
+EVENTS_WITH_DATA = (
+    EVENT_READ,
+    EVENT_NOTE_CREDIT,
+    EVENT_FRAUD_ATTEMPT,
+    EVENT_NOTE_CLEARED_FROM_FRONT,
+    EVENT_NOTE_CLEARED_INTO_CASHBOX,
+)
+
 
 class eSSPError(IOError):  # noqa
     """Generic error exception for eSSP problems."""
@@ -127,34 +155,21 @@ class eSSP(object):  # noqa
         """
         Poll the device.
 
-        0xF1 = Slave Reset (right after booting up)
-        0xEF = Read Note + Channel Number array()
-        0xEE = Credit Note + Channel Number array()
-        0xED = Rejecting
-        0xEC = Rejected
-        0xCC = Stacking
-        0xEB = Stacked
-        0xEA = Safe Jam
-        0xE9 = Unsafe Jam
-        0xE8 = Disabled
-        0xE6 = Fraud attempt + Channel Number array()
-        0xE7 = Stacker full
-        0xE1 = Note cleared from front at reset (Protocol v3)
-                 + Channel Number array()
-        0xE2 = Note cleared into cashbox at reset (Protocol v3)
-                 + Channel Number array()
-        0xE3 = Cash Box Removed (Protocol v3)
-        0xE4 = Cash Box Replaced (Protocol v3)
+        Returns a list of occurred events, consisting of either:
+        - an event status
+        - a tuple with 2 elements: the status and the data
         """
         result = self.send([self.getseq(), '0x1', '0x7'], False)
 
         poll_data = []
         for i in range(3, int(result[2], 16) + 3):
-            if result[i] in ('0xef', '0xee', '0xe6', '0xe1', '0xe2'):
-                poll_data.append([result[i], int(result[i + 1], 16)])
+            status = int(result[i], 16)
+            if status in EVENTS_WITH_DATA:
+                data = int(result[i + 1], 16)
+                poll_data.append((status, data))
                 i += 1
             else:
-                poll_data.append(result[i])
+                poll_data.append(status)
 
         return poll_data
 
