@@ -3,7 +3,10 @@ import logging
 
 import serial
 
-# list of events, based on SSP Protocol manual, version GA138_2_2_222A retrieved from ITL website
+# The constants below are based on SSP Protocol manual,
+#   version GA138_2_2_222A retrieved from ITL website.
+
+# list of events
 EVENT_SLAVE_RESET = 241
 EVENT_READ = 239
 EVENT_NOTE_CREDIT = 238
@@ -23,6 +26,7 @@ EVENT_INITIALISING = 182
 EVENT_TICKET_IN_BEZEL = 173
 EVENT_PRINTED_TO_CASHBOX = 175
 
+# some events also returne additional data (mostly channel ids)
 EVENTS_WITH_DATA = (
     EVENT_READ,
     EVENT_NOTE_CREDIT,
@@ -30,6 +34,16 @@ EVENTS_WITH_DATA = (
     EVENT_NOTE_CLEARED_FROM_FRONT,
     EVENT_NOTE_CLEARED_INTO_CASHBOX,
 )
+
+# generic responses
+RESP_ACK = 240  # 0xF0
+RESP_COMMAND_NOT_KNOWN = 242  # 0xF2
+RESP_WRONG_NUMBER_OF_PARAMETERS = 243  # 0xF3
+RESP_PARAMETERS = 244  # 0xF4
+RESP_COMMAND_CANNOT_BE_PROCESSED = 245  # 0xF5
+RESP_SOFTWARE_ERROR = 246  # 0xF6
+RESP_FAIL = 248  # 0xF8
+RESP_KEY_NOT_SET = 250  # 0xFA
 
 
 class eSSPError(IOError):  # noqa
