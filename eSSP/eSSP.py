@@ -175,15 +175,25 @@ class eSSP(object):  # noqa
         """
         result = self.send([self.getseq(), '0x1', '0x7'], False)
 
+        # discard header
+        result = result[3:]
+
         poll_data = []
-        for i in range(3, int(result[2], 16) + 3):
-            status = int(result[i], 16)
-            if status in EVENTS_WITH_DATA:
-                data = int(result[i + 1], 16)
-                poll_data.append((status, data))
-                i += 1
+        event_status_with_data = None
+        for item in result:
+            item = int(item, 16)
+            if item in EVENTS_WITH_DATA:
+                # keep the status until we have the data
+                event_status_with_data = item
             else:
-                poll_data.append(status)
+                if event_status_with_data:
+                    # the previous item was a status in EVENTS_WITH_DATA
+                    data = item
+                    poll_data.append((event_status_with_data, data))
+                    event_status_with_data = None
+                else:
+                    # nothing special with this item, just a status
+                    poll_data.append(item)
 
         return poll_data
 
