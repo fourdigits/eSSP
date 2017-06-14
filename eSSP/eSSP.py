@@ -173,10 +173,12 @@ class eSSP(object):  # noqa
         - an event status
         - a tuple with 2 elements: the status and the data
         """
+        import ipdb; ipdb.set_trace()  # noqa
         result = self.send([self.getseq(), '0x1', '0x7'], False)
 
         # discard header
-        result = result[3:]
+        length = int(result[2], 16)
+        result = result[3:length]
 
         poll_data = []
         event_status_with_data = None
